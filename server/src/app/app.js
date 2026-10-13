@@ -31,7 +31,6 @@ if (env.swaggerEnabled) {
   app.use("/api", swaggerRouter);
 }
 
-app.use(httpLogger);
 app.use(helmet());
 app.use(
   cors({

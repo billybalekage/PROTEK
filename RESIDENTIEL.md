@@ -1,4 +1,4 @@
-# PROTECK — SPÉCIFICATIONS TECHNIQUES DE LA PHASE 1 : MODULE RÉSIDENTIEL
+# PROTECK — SPÉCIFICATIONS TECHNIQUES : MODULE RÉSIDENTIEL
 
 **Version :** 1.0  
 **Stack Technologique :** JavaScript pur (Vanilla JS / Node.js) — _Pas de TypeScript_  
@@ -6,7 +6,7 @@
 
 ---
 
-## 1. OBJECTIFS DE LA PHASE 1
+## 1. OBJECTIFS
 
 Cette première phase pose le socle du moteur de calcul et des règles métier pour les installations électriques résidentielles. L'objectif est de structurer mathématiquement et logiquement le dimensionnement d'un projet de l'origine (compteur/tableau) jusqu'aux circuits terminaux, en garantissant la sécurité des personnes et des biens.
 
@@ -58,7 +58,7 @@ C'est le point de départ de tout circuit. Il se calcule à partir de la puissan
 
 Le moteur d'exécution JavaScript doit respecter scrupuleusement cet ordre séquentiel de calcul :
 
-```text
+
 [ Puissance Installée (P) & Nature de la Charge ]
                    │
                    ▼

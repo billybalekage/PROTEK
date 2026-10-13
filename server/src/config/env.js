@@ -47,7 +47,6 @@ const { value, error } = schema.validate(process.env, { abortEarly: false });
 
 if (error) {
   const details = error.details.map((d) => `  - ${d.message}`).join("\n");
-  // eslint-disable-next-line no-console
   console.error(`[ENV] Configuration invalide :\n${details}`);
   process.exit(1);
 }

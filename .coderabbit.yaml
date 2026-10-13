@@ -1,11 +1,44 @@
 language: "fr-FR"
 early_access: false
 reviews:
-  profile: "chill" 
+  profile: "assertive"
   request_changes_workflow: false
   high_level_summary: true
   poem: false
   review_status: true
+  path_instructions:
+    - path: "server/**/*.js"
+      instructions: |
+        Vérifie systématiquement la syntaxe et la logique des changements.
+        Repère notamment les imports/exports incohérents, les erreurs d'exécution,
+        les promesses rejetées ou non attendues, les cas limites et les erreurs
+        de validation. Pour Express, vérifie aussi l'ordre des routes et middlewares,
+        la propagation des erreurs, les codes HTTP et la forme des réponses.
+        Ne signale que des défauts concrets et explique un scénario de reproduction
+        ou leur conséquence. Ne prétends pas avoir exécuté les tests ou le code.
+    - path: "server/src/core/electrick_rules/**"
+      instructions: |
+        Vérifie la logique des calculs électriques : unités, cohérence dimensionnelle,
+        bornes, arrondis, valeurs normalisées et cas limites. N'invente pas de règle
+        normative ; signale toute hypothèse non justifiée ou tout calcul qui ne peut
+        pas être confirmé à partir du code et de ses références.
+    - path: "server/src/tests/**"
+      instructions: |
+        Vérifie que les tests couvrent le comportement attendu, les cas limites et
+        les erreurs des changements correspondants. Les tests doivent échouer si
+        la régression visée est réintroduite et ne pas dépendre de l'ordre d'exécution.
+    - path: "server/src/config/**"
+      instructions: |
+        Vérifie la validation et les valeurs par défaut de la configuration,
+        la compatibilité entre versions de dépendances et les imports/export utilisés
+        par leurs consommateurs. Signale toute exposition de secrets ou de détails
+        internes dans les réponses et les logs.
+    - path: "server/prisma/**"
+      instructions: |
+        Vérifie la cohérence du schéma Prisma avec le client et le code serveur,
+        ainsi que la sûreté des changements de schéma. Signale les modifications
+        destructives ou incompatibles et n'affirme jamais qu'une migration a été
+        exécutée si ce n'est pas démontré.
   auto_review:
     enabled: true
     drafts: false

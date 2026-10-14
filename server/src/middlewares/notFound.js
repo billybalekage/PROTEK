@@ -1,13 +1,12 @@
 "use strict";
 
-const AppError = require("../shared/errors/AppError");
+const { OperationalError } = require("../shared/errors/errors");
 
 module.exports = function notFound(req, res, next) {
   next(
-    new AppError(
-      `Route introuvable : ${req.method} ${req.originalUrl}`,
-      404,
-      "ROUTE_NOT_FOUND",
-    ),
+    new OperationalError("ROUTE_NOT_FOUND", {
+      method: req.method,
+      path: req.originalUrl,
+    }),
   );
 };

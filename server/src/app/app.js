@@ -8,20 +8,20 @@ const hpp = require("hpp");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 
-const {env} = require("../config/env");
-const AppError = require("../shared/errors/AppError");
+const { env } = require("../config/env");
+const { OperationalError } = require("../shared/errors/errors");
 const requestId = require("../middlewares/requestId");
 const notFound = require("../middlewares/notFound");
 const errorHandler = require("../middlewares/errorHandler");
 const httpLogger = require("../middlewares/httpLogger");
 const { isDatabaseHealthy } = require("../config/db");
 const swaggerRouter = require("../config/swaggerUi");
+const apiRouter = require("./apiRouter");
 
 const app = express();
 
-
 app.disable("x-powered-by");
-app.set("trust proxy", env.trustProxy); 
+app.set("trust proxy", env.trustProxy);
 
 app.use(requestId);
 app.use(httpLogger);
@@ -33,18 +33,23 @@ if (env.swaggerEnabled) {
 
 app.use(helmet());
 app.use(
+  rateLimit({
+    windowMs: env.rateLimit.windowMs,
+    max: env.rateLimit.max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res, next) =>
+      next(new OperationalError("TOO_MANY_REQUESTS")),
+  }),
+);
+
+app.use(
   cors({
     origin(origin, callback) {
       // Autorise les clients sans origine (apps mobiles/desktop, curl, health checks)
       if (!origin || env.corsOrigins.includes(origin))
         return callback(null, true);
-      return callback(
-        new AppError(
-          "Origine non autorisée par CORS.",
-          403,
-          "CORS_NOT_ALLOWED",
-        ),
-      );
+      return callback(new OperationalError("CORS_NOT_ALLOWED"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -60,30 +65,13 @@ app.use(express.urlencoded({ extended: true, limit: env.bodyLimit }));
 app.use(cookieParser());
 app.use(hpp()); // protection contre la pollution des paramètres HTTP
 
-
-app.use(
-  rateLimit({
-    windowMs: env.rateLimit.windowMs,
-    max: env.rateLimit.max,
-    standardHeaders: true,
-    legacyHeaders: false,
-    handler: (req, res, next) =>
-      next(
-        new AppError(
-          "Trop de requêtes, réessayez plus tard.",
-          429,
-          "TOO_MANY_REQUESTS",
-        ),
-      ),
-  }),
-);
-
 app.use((req, res, next) => {
-  if (app.locals.shuttingDown) res.setHeader('Connection', 'close');
+  if (app.locals.shuttingDown) res.setHeader("Connection", "close");
   next();
 });
 
-// --- Routes -------------------------------------------------------------
+app.use("/api/v1", apiRouter); // Sentralisation des routes
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
@@ -92,11 +80,11 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get('/ready', async (req, res) => {
+app.get("/ready", async (req, res) => {
   const dbOk = await isDatabaseHealthy();
   res.status(dbOk ? 200 : 503).json({
-    status: dbOk ? 'ready' : 'unavailable',
-    checks: { database: dbOk ? 'up' : 'down' },
+    status: dbOk ? "ready" : "unavailable",
+    checks: { database: dbOk ? "up" : "down" },
     timestamp: new Date().toISOString(),
   });
 });

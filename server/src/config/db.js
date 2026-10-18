@@ -44,7 +44,7 @@ async function connectDatabase() {
     try {
       await prisma.$connect();
       await prisma.$queryRaw`SELECT 1`;
-      dbLogger.info("Connexion à la base de données établie.");
+      dbLogger.info("Connexion a la base de donnees etablie.");
       return;
     } catch (err) {
       const isLast = attempt === connectRetries;

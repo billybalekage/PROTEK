@@ -6,3 +6,148 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ==========================================
+// 1. GESTION DES UTILISATEURS ET ORGANISATIONS
+// ==========================================
+
+enum AccountType {
+  PERSONAL
+  ENTERPRISE
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  ENGINEER
+  TECHNICIAN
+}
+
+enum ProjectStatus {
+  DRAFT
+  PENDING
+  COMPLITE
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String      @map("password_hash")
+  fullName     String
+  phone        String
+  accountType  AccountType @default(PERSONAL)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  organizations UserOrganization[]
+  projects      Project[]          @relation("UserProjects")
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  logoUrl   String?
+  taxId     String? // Numéro d'identification fiscale (RCCM, Id. Nat, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members        UserOrganization[]
+  projects       Project[]          @relation("OrganizationProjects")
+  customCatalogs ComponentCatalog[]
+
+  @@map("organizations")
+}
+
+// Table de liaison Many-to-Many entre Utilisateurs et Organisations (avec gestion des rôles)
+model UserOrganization {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  role           UserRole @default(TECHNICIAN)
+  joinedAt       DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("user_organizations")
+}
+
+// ==========================================
+// 2. GESTION DES PROJETS ET CONFIGURATION
+// ==========================================
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  version     String        @default("v1") // Pour le versionnage (v1, v2...)
+  type        String // RESIDENTIAL, INDUSTRIAL, SOLAR
+  status      ProjectStatus @default(DRAFT) // DRAFT, VALIDATED, ARCHIVED
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Propriété (Soit appartient à un utilisateur personnel, soit à une entreprise)
+  userId String?
+  user   User?   @relation("UserProjects", fields: [userId], references: [id], onDelete: SetNull)
+
+  organizationId String?
+  organization   Organization? @relation("OrganizationProjects", fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Relations en aval
+  installations Installation[]
+  auditLogs     AuditLog[]
+
+  @@map("projects")
+}
+
+// ==========================================
+// 3. CATALOGUES ET COMPOSANTS (Ex: Entreprise ou Global)
+// ==========================================
+
+model ComponentCatalog {
+  id            String  @id @default(uuid())
+  componentType String // CABLE, BREAKER, RCD, INVERTER, BATTERY
+  reference     String // Référence fabricant ou normalisée
+  technicalData Json // Propriétés techniques (ex: Iz, calibres, tensions, etc.)
+  isCustom      Boolean @default(false) // Vrai si créé par une entreprise
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("component_catalogs")
+}
+
+// ==========================================
+// 4. TRAÇABILITÉ ET AUDIT LOG
+// ==========================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String // CREATE_PROJECT, UPDATE_CIRCUIT, VALIDATE_STUDY, etc.
+  ipAddress String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model Installation {
+  id        String  @id @default(uuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  data      Json // Structure technique de l'installation
+
+  @@map("installations")
+}

@@ -2,7 +2,7 @@
 
 const swaggerJsdoc = require("swagger-jsdoc");
 const path = require("path");
-const env = require("./env");
+const {env} = require("./env");
 
 const srcDir = path.join(__dirname, "..");
 

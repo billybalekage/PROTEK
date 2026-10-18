@@ -34,3 +34,46 @@ describe("NormativeError", () => {
     expect(() => new NormativeError("UNAUTHORIZED")).toThrow(TypeError);
   });
 });
+
+describe("errorHandler", () => {
+  const buildResponse = (headersSent = false) => ({
+    headersSent,
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+  });
+
+  test("returns a generic 500 without req.log and without leaking details", () => {
+    const response = buildResponse();
+
+    expect(() =>
+      errorHandler(
+        new Error("secret interne"),
+        { id: "request-2" },
+        response,
+        jest.fn(),
+      ),
+    ).not.toThrow()
+
+    expect(response.status).toHaveBeenCalledWith(500)
+    expect(response.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: ERROR_CODES.INTERNAL_ERROR.message,
+        details: null,
+        requestId: "request-2"
+      }
+    })
+  });
+  test("delegates to Express when headers were already sent", () => {
+    const response = buildResponse(true)
+    const next = jest.fn()
+    const error = new Error("tard");
+
+    errorHandler(error, {id: "request-3"}, response, next)
+
+    expect(next).toHaveBeenCalledWith(error)
+    expect(response.json).not.toHaveBeenCalled()
+  })
+});
+

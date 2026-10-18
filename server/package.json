@@ -6,6 +6,10 @@
   "author": "",
   "type": "commonjs",
   "main": "server.js",
+  "jest" : {
+    "testEnvironment" : "node",
+    "setupFiles": ["<rootDir>/src/tests/setupEnv.js"]
+  },
   "scripts": {
     "test": "jest --runInBand",
     "lint": "eslint .",

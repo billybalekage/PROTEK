@@ -115,3 +115,6 @@ class NormativeError extends AppError {
 }
 
 module.exports = { ERROR_CODES, NormativeError, OperationalError };
+
+
+// Connexion avec core/electric-rules/shared qui connecte residentiel avec les messages d'erreur et les reference normative nationnal et internationnales. 

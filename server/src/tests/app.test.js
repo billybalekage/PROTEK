@@ -1,13 +1,5 @@
 "use strict";
 
-Object.assign(process.env, {
-  DATABASE_URL:
-    "postgresql://test:test@localhost:5432/protek_test?schema=public",
-  JWT_SECRET: "test-only-secret-with-at-least-32-characters",
-  CORS_ORIGINS: "http://localhost:3000",
-  SWAGGER_ENABLED: "false",
-});
-
 const request = require("supertest");
 const jwt = require("jsonwebtoken");
 const app = require("../app/app");

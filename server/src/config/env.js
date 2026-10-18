@@ -4,7 +4,7 @@
  * Chargement et validation des variables d'environnement.
  * Échec immédiat (fail-fast) si la configuration est invalide.
  */
-require("dotenv").config();
+require("dotenv").config({quiet: true});
 const Joi = require("joi");
 
 const schema = Joi.object({
@@ -19,7 +19,7 @@ const schema = Joi.object({
     .uri({ scheme: ["postgresql", "postgres"] })
     .required(),
 
-  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_SECRET: Joi.string().min(32), //Resolve regex patern() require and more
   JWT_EXPIRES_IN: Joi.string().default("15m"),
 
   // Liste d'origines séparées

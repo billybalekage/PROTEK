@@ -62,12 +62,11 @@ function calculateVoltageDropPercent({
   sectionMm2,
   phases = 1,
   cosPhi = 1,
-  voltageV = MINIMAL_PHASE_VOLTAGE_V,
+  voltageV,
 }) {
   assertPositive(ibA, "ibA");
   assertPositive(lengthM, "lengthM");
   assertPositive(sectionMm2, "sectionMm2");
-  assertPositive(voltageV, "voltageV");
 
   if (phases !== 1 && phases !== 3) {
     throw new NormativeError(
@@ -77,6 +76,27 @@ function calculateVoltageDropPercent({
     );
   }
 
+  if (
+    typeof cosPhi !== "number" ||
+    !Number.isFinite(cosPhi) ||
+    cosPhi <= 0 ||
+    cosPhi > 1
+  ) {
+    throw new NormativeError(
+      NORMATIVE_ERROR_CODES.INVALID_INPUT,
+      "cosPhi doit être dans l’intervalle (0, 1].",
+      { details: { field: "cosPhi", value: cosPhi } },
+    );
+  }
+
+  const referenceVoltageV =
+    voltageV === undefined
+      ? phases === 3
+        ? 400
+        : MINIMAL_PHASE_VOLTAGE_V
+      : voltageV;
+  assertPositive(referenceVoltageV, "voltageV");
+
   // Calcul des impédances élémentaires
   const R = conductorResistanceOhm(lengthM, sectionMm2);
   const X = conductorReactanceOhm(lengthM, sectionMm2);
@@ -85,7 +105,7 @@ function calculateVoltageDropPercent({
   const k = phases === 1 ? 2 : Math.sqrt(3);
 
   const deltaV = ibA * (R * Math.cos(phi) + X * Math.sin(phi)) * k;
-  const percent = (deltaV / voltageV) * 100;
+  const percent = (deltaV / referenceVoltageV) * 100;
 
   return {
     deltaV: Math.round(deltaV * 1e6) / 1e6,
@@ -105,7 +125,7 @@ function validateVoltageDrop({
   sectionMm2,
   phases = 1,
   cosPhi = 1,
-  voltageV = MINIMAL_PHASE_VOLTAGE_V,
+  voltageV,
   circuitType = "other",
 }) {
   const res = calculateVoltageDropPercent({
@@ -116,9 +136,14 @@ function validateVoltageDrop({
     cosPhi,
     voltageV,
   });
-  const limit =
-    VOLTAGE_DROP_LIMITS_PERCENT[circuitType] ??
-    VOLTAGE_DROP_LIMITS_PERCENT.other;
+  const limit = VOLTAGE_DROP_LIMITS_PERCENT[circuitType];
+  if (limit === undefined) {
+    throw new NormativeError(
+      NORMATIVE_ERROR_CODES.INVALID_INPUT,
+      `Type de circuit non pris en charge : ${circuitType}.`,
+      { details: { field: "circuitType", value: circuitType } },
+    );
+  }
 
   if (res.percent > limit) {
     throw new NormativeError(

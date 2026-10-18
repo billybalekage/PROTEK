@@ -12,14 +12,42 @@ const {
   DDR_STANDARD_RATTINGS_A,
 } = require("./constants");
 
-function assertArray(value, name) {
+function assertCircuits(value) {
   if (!Array.isArray(value) || value.length === 0) {
     throw new NormativeError(
       NORMATIVE_ERROR_CODES.INVALID_INPUT,
-      `${name} doit être un tableau non vide.`,
-      { details: { field: name } },
+      "circuits doit être un tableau non vide.",
+      { details: { field: "circuits" } },
     );
   }
+
+  value.forEach((circuit, index) => {
+    if (!circuit || typeof circuit !== "object" || Array.isArray(circuit)) {
+      throw new NormativeError(
+        NORMATIVE_ERROR_CODES.INVALID_INPUT,
+        "Chaque circuit doit être un objet.",
+        { details: { field: `circuits[${index}]`, value: circuit } },
+      );
+    }
+
+    if (
+      circuit.sensitivityMa !== undefined &&
+      (typeof circuit.sensitivityMa !== "number" ||
+        !Number.isFinite(circuit.sensitivityMa) ||
+        circuit.sensitivityMa <= 0)
+    ) {
+      throw new NormativeError(
+        NORMATIVE_ERROR_CODES.INVALID_INPUT,
+        "La sensibilité demandée doit être un nombre positif en mA.",
+        {
+          details: {
+            field: `circuits[${index}].sensitivityMa`,
+            value: circuit.sensitivityMa,
+          },
+        },
+      );
+    }
+  });
 }
 
 /**
@@ -29,28 +57,17 @@ function assertArray(value, name) {
  * circuits : [{ ibA, sensitivityMa?, hasElectronicLoad? }, ...]
  */
 function determineSensitivity(circuits) {
-  assertArray(circuits, "circuits");
+  assertCircuits(circuits);
 
   const provided = circuits
     .map((c) => (typeof c.sensitivityMa === "number" ? c.sensitivityMa : null))
     .filter((v) => v !== null);
 
   // La sensibilité la plus stricte (plus petite valeur) l'emporte.
-  const minProvided = provided.length ? Math.min(...provided) : null;
-
-  // On s'assure de renvoyer une sensibilité présente dans la liste standard ou la plus stricte >= min standard
-  const sensible =
-    minProvided === null
-      ? Math.min(...DDR_SENSITIVITIES_MA)
-      : Math.min(minProvided, ...DDR_SENSITIVITIES_MA);
-
-  // Choisir la valeur normalisée la plus proche (inférieure ou égale à sensible si possible)
-  const candidates = DDR_SENSITIVITIES_MA.slice().sort((a, b) => a - b);
-  for (const s of candidates) {
-    if (s <= sensible) return s;
-  }
-  // fallback : retourner la plus stricte
-  return candidates[0];
+  // En habitation, le défaut de configuration reste 30 mA pour la protection des personnes.
+  return provided.length
+    ? Math.min(...provided)
+    : Math.min(...DDR_SENSITIVITIES_MA);
 }
 
 /**
@@ -58,7 +75,7 @@ function determineSensitivity(circuits) {
  * sinon 'AC' par défaut. (Simplification conforme à la spécification RESIDENTIEL.md)
  */
 function determineType(circuits) {
-  assertArray(circuits, "circuits");
+  assertCircuits(circuits);
   return circuits.some((c) => c.hasElectronicLoad) ? "A" : "AC";
 }
 
@@ -98,10 +115,10 @@ function selectStandardRating(totalIb) {
  * Retour : { sensitivityMa, type, ratingA, totalIb }
  */
 function designDDRForGroup(circuits) {
-  assertArray(circuits, "circuits");
+  assertCircuits(circuits);
 
   const totalIb = circuits.reduce((acc, c) => {
-    const ib = Number(c.ibA);
+    const ib = c.ibA;
     if (typeof ib !== "number" || !Number.isFinite(ib) || ib <= 0) {
       throw new NormativeError(
         NORMATIVE_ERROR_CODES.INVALID_INPUT,

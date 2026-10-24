@@ -184,3 +184,15 @@ Dans le cadre de PROTECK et des contextes de réseaux instables (micro-coupures,
 
 - **Marges de sécurité sur les calibres :** Intégration d'un coefficient de surdimensionnement optionnel géré par l'utilisateur pour anticiper l'échauffement lié aux baisses de tension prolongées (qui augmentent l'appel de courant $I_b$ pour une même puissance restituée).
 - **Protections associées conseillées :** Recommandation automatique de modules de protection de surtension/sous-tension (relais de tension réglables) en amont du tableau principal pour protéger les équipements sensibles face aux instabilités du réseau de distribution local.
+
+## 7. Données et état du moteur résidentiel
+
+Les tables de température, de groupement, de capacité de transport et de filiation résident dans `server/src/core/electric-rules/residential/data/`. Chaque fichier conserve les métadonnées de source, d'édition, de saisie et de seconde vérification. Le chargeur bloque l'accès aux tables si les champs de vérification ne sont pas renseignés et si leur statut n'est pas `verified`; seul `NODE_ENV=test` autorise les jeux de données non vérifiés. Les fichiers présents contiennent des brouillons, pas des valeurs validées : ils ne doivent pas servir à un dimensionnement de chantier avant vérification indépendante.
+
+Pour publier un jeu de données, renseigner l'édition et la table exactes, l'auteur de la saisie, le relecteur indépendant, l'horodatage ISO de vérification, puis le statut `verified`. Ajouter la référence de source associée aux valeurs et des cas d'exemple documentés avant activation. Les essais utilisant les brouillons actuels sont des tests algorithmiques, pas des validations normatives issues d'un guide fabricant.
+
+`designCircuit()` enchaîne $I_b$, $I_n$, la section et $I_z$, puis la chute de tension si une longueur est fournie. Les contrôles incluent $I_b \le I_n \le I_z$ et $I_2 \le 1{,}45 I_z$. Le mode de pose doit être couvert par une ligne de table; sinon l'outil refuse de dimensionner et demande une justification hors outil.
+
+Les modules purs exposés calculent aussi la section PE, la limite de sécurité de $R_A$ (affichée séparément de la recommandation de 100 Ω), les courants de court-circuit à partir d'une donnée amont obligatoire et d'un coefficient de tension maximal explicite, puis les contrôles Pdc/déclenchement. Ne pas utiliser de valeur Icc générique à la place d'une donnée distributeur ou d'une mesure site. Le modèle de court-circuit est une approximation à valider avec le réseau et le régime de neutre réels. La sélectivité ampèremétrique est une règle empirique; la sélectivité garantie et la filiation nécessitent les tableaux et références constructeur. Les types DDR AC/A/F/B suivent la classe de charge saisie et restent à confirmer par la notice de l'appareil.
+
+L'adaptation réseau instable peut majorer $I_b$ pour une tension minimale saisie et recommande alors un relais de tension. Les valeurs de réseau et de protection restent à établir pour l'installation concernée.

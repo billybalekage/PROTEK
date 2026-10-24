@@ -4,28 +4,12 @@ const {
   NormativeError,
   NORMATIVE_ERROR_CODES,
 } = require("../shared/normative-error");
-
-/**
- * Vérifie qu'une valeur est strictement positive.
- * Lance NormativeError en cas d'entrée invalide.
- */
-function assertPositive(value, name) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
-    throw new NormativeError(
-      NORMATIVE_ERROR_CODES.INVALID_INPUT,
-      `Valeur invalide pour ${name} : un nombre strictement positif est attendu (reçu ${value}).`,
-      { details: { field: name, value } },
-    );
-  }
-}
+const { assertPositive } = require("../shared/validators");
 
 /**
  * Calcul du courant d'emploi (I_b) pour un récepteur ou un groupe résidentiel.
- * Formules de RESIDENTIEL.md :
- *  - Monophasé : I_b = (P * k_u * k_s) / (U * cosφ)
- *  - Triphasé   : I_b = (P * k_u * k_s) / (√3 * U_L * cosφ)
- *
- * P est exprimée en watts, U en volts, et le résultat en ampères.
+ * Monophasé : I_b = (P × k_u × k_s) / (U × cosφ)
+ * Triphasé : I_b = (P × k_u × k_s) / (√3 × U_L × cosφ)
  */
 function calculateDesignCurrent({
   powerW,
@@ -59,9 +43,7 @@ function calculateDesignCurrent({
 
   const effectivePower = powerW * utilisationFacteur * simultaneityFactor;
   const divisor = (phases === 3 ? Math.sqrt(3) : 1) * voltageV * cosPhi;
-  const current = effectivePower / divisor;
-
-  return Math.round(current * 1e6) / 1e6;
+  return Math.round((effectivePower / divisor) * 1e6) / 1e6;
 }
 
-module.exports = { calculateDesignCurrent, assertPositive };
+module.exports = { calculateDesignCurrent };

@@ -65,16 +65,45 @@ const ERROR_CODES = Object.freeze({
       "Le courant admissible du câble est insuffisant pour la protection sélectionnée.",
     category: "normative",
   }),
-  DISCRIMINATION_FAILURE: Object.freeze({
+  EXCEEDING_BREAKER_RANGE: Object.freeze({
     statusCode: 422,
-    message:
-      "La sélectivité entre les dispositifs de protection n’est pas démontrée.",
+    message: "Le courant d'emploi dépasse les calibres de disjoncteur disponibles.",
+    category: "normative",
+  }),
+  CABLE_NOT_PROTECTED: Object.freeze({
+    statusCode: 422,
+    message: "La coordination du câble et de sa protection n'est pas respectée.",
+    category: "normative",
+  }),
+  TEMPERATURE_OUT_OF_RANGE: Object.freeze({
+    statusCode: 422,
+    message: "La température dépasse la plage prise en charge par le calcul.",
+    category: "normative",
+  }),
+  DDR_CAPACITY_EXCEEDED: Object.freeze({
+    statusCode: 422,
+    message: "Le courant dépasse les calibres DDR disponibles.",
     category: "normative",
   }),
   SHORT_CIRCUIT_PDC_INADEQUATE: Object.freeze({
     statusCode: 422,
+    message: "Le pouvoir de coupure est insuffisant pour le courant de court-circuit présumé.",
+    category: "normative",
+  }),
+  MAGNETIC_TRIP_NOT_GUARANTEED: Object.freeze({
+    statusCode: 422,
+    message: "Le déclenchement magnétique n'est pas garanti au courant de court-circuit minimal.",
+    category: "normative",
+  }),
+  DIFFERENTIAL_SELECTIVITY_FAILURE: Object.freeze({
+    statusCode: 422,
+    message: "Les conditions minimales de sélectivité différentielle ne sont pas respectées.",
+    category: "normative",
+  }),
+  DISCRIMINATION_FAILURE: Object.freeze({
+    statusCode: 422,
     message:
-      "Le pouvoir de coupure du dispositif est insuffisant au courant de court-circuit présumé.",
+      "La sélectivité entre les dispositifs de protection n’est pas démontrée.",
     category: "normative",
   }),
   THERMAL_COORDINATION_FAILURE: Object.freeze({

@@ -9,8 +9,16 @@ const {
 } = require("../shared/normative-error");
 const {
   DDR_SENSITIVITIES_MA,
-  DDR_STANDARD_RATTINGS_A,
+  DDR_STANDARD_RATINGS_A,
 } = require("./constants");
+
+const DDR_TYPES = Object.freeze({
+  standard: "AC",
+  electronique: "A",
+  variateur_mono: "F",
+  variateur_tri: "B",
+  onduleur_pv: "B",
+});
 
 function assertCircuits(value) {
   if (!Array.isArray(value) || value.length === 0) {
@@ -31,14 +39,28 @@ function assertCircuits(value) {
     }
 
     if (
-      circuit.sensitivityMa !== undefined &&
-      (typeof circuit.sensitivityMa !== "number" ||
-        !Number.isFinite(circuit.sensitivityMa) ||
-        circuit.sensitivityMa <= 0)
+      circuit.loadClass !== undefined &&
+      !Object.prototype.hasOwnProperty.call(DDR_TYPES, circuit.loadClass)
     ) {
       throw new NormativeError(
         NORMATIVE_ERROR_CODES.INVALID_INPUT,
-        "La sensibilité demandée doit être un nombre positif en mA.",
+        `Classe de charge non prise en charge : ${circuit.loadClass}.`,
+        {
+          details: {
+            field: `circuits[${index}].loadClass`,
+            value: circuit.loadClass,
+          },
+        },
+      );
+    }
+
+    if (
+      circuit.sensitivityMa !== undefined &&
+      !DDR_SENSITIVITIES_MA.includes(circuit.sensitivityMa)
+    ) {
+      throw new NormativeError(
+        NORMATIVE_ERROR_CODES.INVALID_INPUT,
+        `La sensibilité demandée doit être une valeur normalisée (${DDR_SENSITIVITIES_MA.join(", ")} mA).`,
         {
           details: {
             field: `circuits[${index}].sensitivityMa`,
@@ -59,15 +81,11 @@ function assertCircuits(value) {
 function determineSensitivity(circuits) {
   assertCircuits(circuits);
 
-  const provided = circuits
-    .map((c) => (typeof c.sensitivityMa === "number" ? c.sensitivityMa : null))
-    .filter((v) => v !== null);
+  const requested = circuits
+    .map((c) => c.sensitivityMa)
+    .filter((value) => value !== undefined);
 
-  // La sensibilité la plus stricte (plus petite valeur) l'emporte.
-  // En habitation, le défaut de configuration reste 30 mA pour la protection des personnes.
-  return provided.length
-    ? Math.min(...provided)
-    : Math.min(...DDR_SENSITIVITIES_MA);
+  return Math.min(30, ...requested);
 }
 
 /**
@@ -76,7 +94,26 @@ function determineSensitivity(circuits) {
  */
 function determineType(circuits) {
   assertCircuits(circuits);
-  return circuits.some((c) => c.hasElectronicLoad) ? "A" : "AC";
+  const rank = { AC: 0, A: 1, F: 2, B: 3 };
+  let selectedType = "AC";
+  for (const circuit of circuits) {
+    const type = circuit.loadClass !== undefined
+      ? DDR_TYPES[circuit.loadClass]
+      : circuit.hasElectronicLoad
+        ? "A"
+        : "AC";
+    if (!type) {
+      throw new NormativeError(
+        NORMATIVE_ERROR_CODES.INVALID_INPUT,
+        `Classe de charge non prise en charge : ${circuit.loadClass}.`,
+        {
+          details: { field: "loadClass", value: circuit.loadClass },
+        },
+      );
+    }
+    if (rank[type] > rank[selectedType]) selectedType = type;
+  }
+  return selectedType;
 }
 
 /**
@@ -96,7 +133,7 @@ function selectStandardRating(totalIb) {
     );
   }
 
-  const sorted = DDR_STANDARD_RATTINGS_A.slice().sort((a, b) => a - b);
+  const sorted = DDR_STANDARD_RATINGS_A.slice().sort((a, b) => a - b);
   for (const r of sorted) {
     if (r >= totalIb) return r;
   }
@@ -138,6 +175,8 @@ function designDDRForGroup(circuits) {
     sensitivityMa,
     type,
     ratingA,
+    manufacturerNotice:
+      "Confirmer le type de DDR requis dans la notice du fabricant de chaque appareil.",
   };
 }
 
@@ -146,4 +185,5 @@ module.exports = {
   determineType,
   selectStandardRating,
   designDDRForGroup,
+  DDR_TYPES,
 };

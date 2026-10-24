@@ -12,18 +12,9 @@ const {
   CABLE_REACTANCE_OHM_PER_M,
   REACTANCE_THRESHOLD_MM2,
   VOLTAGE_DROP_LIMITS_PERCENT,
-  MINIMAL_PHASE_VOLTAGE_V,
+  NOMINAL_PHASE_VOLTAGE_V,
 } = require("./constants");
-
-function assertPositive(value, name) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
-    throw new NormativeError(
-      NORMATIVE_ERROR_CODES.INVALID_INPUT,
-      `Valeur invalide pour ${name} : un nombre strictement positif est attendu (reçu ${value}).`,
-      { details: { field: name, value } },
-    );
-  }
-}
+const { assertPositive } = require("../shared/validators");
 
 /**
  * Calcule la résistance ohmique d'un conducteur cuivre sur la longueur donnée.
@@ -38,7 +29,7 @@ function conductorResistanceOhm(lengthM, sectionMm2) {
  * Pour les très grandes sections, la composante réactive est négligeable.
  */
 function conductorReactanceOhm(lengthM, sectionMm2) {
-  if (sectionMm2 >= REACTANCE_THRESHOLD_MM2) return 0;
+  if (sectionMm2 < REACTANCE_THRESHOLD_MM2) return 0;
   return CABLE_REACTANCE_OHM_PER_M * lengthM;
 }
 
@@ -93,7 +84,7 @@ function calculateVoltageDropPercent({
     voltageV === undefined
       ? phases === 3
         ? 400
-        : MINIMAL_PHASE_VOLTAGE_V
+        : NOMINAL_PHASE_VOLTAGE_V
       : voltageV;
   assertPositive(referenceVoltageV, "voltageV");
 

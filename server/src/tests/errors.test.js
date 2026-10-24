@@ -2,6 +2,10 @@
 
 const errorHandler = require("../middlewares/errorHandler");
 const { ERROR_CODES, NormativeError } = require("../shared/errors/errors");
+const {
+  NormativeError: CoreNormativeError,
+  NORMATIVE_ERROR_CODES,
+} = require("../core/electric-rules/shared/normative-error");
 
 describe("NormativeError", () => {
   test("uses the central status, message, and details in the API response", () => {
@@ -32,6 +36,36 @@ describe("NormativeError", () => {
 
   test("rejects codes not registered as normative errors", () => {
     expect(() => new NormativeError("UNAUTHORIZED")).toThrow(TypeError);
+  });
+
+  test("maps core normative errors to the HTTP response", () => {
+    const response = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const details = { ibA: 10, inA: 10, i2A: 15, izA: 10 };
+
+    errorHandler(
+      new CoreNormativeError(
+        NORMATIVE_ERROR_CODES.CABLE_NOT_PROTECTED,
+        "Coordination incorrecte",
+        { reference: "CEI 60364-4-43", details },
+      ),
+      { id: "request-core" },
+      response,
+      jest.fn(),
+    );
+
+    expect(response.status).toHaveBeenCalledWith(422);
+    expect(response.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: "CABLE_NOT_PROTECTED",
+        message: ERROR_CODES.CABLE_NOT_PROTECTED.message,
+        details: { ...details, reference: "CEI 60364-4-43" },
+        requestId: "request-core",
+      },
+    });
   });
 });
 
@@ -76,4 +110,3 @@ describe("errorHandler", () => {
     expect(response.json).not.toHaveBeenCalled()
   })
 });
-

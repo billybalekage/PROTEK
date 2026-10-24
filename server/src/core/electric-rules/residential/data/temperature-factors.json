@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "standard": "CEI 60364-5-52",
+    "table": "B.52 — facteurs de correction de température",
+    "edition": null,
+    "enteredBy": null,
+    "verifiedBy": null,
+    "verifiedAt": null,
+    "status": "draft-unverified"
+  },
+  "PVC": [[10, 1.22], [15, 1.17], [20, 1.12], [25, 1.06], [30, 1.00]],
+  "XLPE": []
+}

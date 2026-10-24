@@ -1,10 +1,15 @@
 "use strict";
 
+const path = require("path");
+
 /**
  * Chargement et validation des variables d'environnement.
  * Échec immédiat (fail-fast) si la configuration est invalide.
  */
-require("dotenv").config({quiet: true});
+require("dotenv").config({
+  path: path.resolve(__dirname, "../../.env"),
+  quiet: true,
+});
 const Joi = require("joi");
 
 const schema = Joi.object({

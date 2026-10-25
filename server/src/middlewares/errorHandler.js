@@ -19,7 +19,8 @@ module.exports = function errorHandler(err, req, res, next) {
   ) {
     const definition = ERROR_CODES[err.code];
     if (definition) {
-      ({ statusCode, message } = definition);
+      statusCode = definition.statusCode;
+      message = err.message || definition.message;
       code = err.code;
       details = err.details ?? null;
       if (err.reference) {

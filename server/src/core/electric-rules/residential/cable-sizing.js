@@ -22,10 +22,6 @@ const { assertVerified } = require("../shared/data-loader");
 const { calculateVoltageDropPercent } = require("./voltage-drop");
 
 function getTemperatureFactor(insulation, ambientTempC) {
-  assertVerified(
-    TEMPERATURE_FACTOR_DATASET,
-    "facteurs de température",
-  );
   if (!Object.prototype.hasOwnProperty.call(TEMPERATURE_FACTORS, insulation)) {
     throw new NormativeError(
       NORMATIVE_ERROR_CODES.INVALID_INPUT,
@@ -35,6 +31,11 @@ function getTemperatureFactor(insulation, ambientTempC) {
   }
   const table = TEMPERATURE_FACTORS[insulation];
   if (ambientTempC === REFERENCE_AMBIENT_TEMP_C) return 1;
+
+  assertVerified(
+    TEMPERATURE_FACTOR_DATASET,
+    "facteurs de température",
+  );
 
   if (!Array.isArray(table) || table.length === 0) {
     throw new NormativeError(

@@ -178,6 +178,17 @@ describe("protection contre les surintensités", () => {
     );
   });
 
+  test("accepte 30 °C même si la table n'est pas vérifiée en production", () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = "production";
+
+    try {
+      expect(getTemperatureFactor("PVC", 30)).toBe(1);
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+  });
+
   test("néglige la réactance sous 50 mm² uniquement", () => {
     expect(conductorReactanceOhm(10, 16)).toBe(0);
     expect(conductorReactanceOhm(10, 50)).toBeGreaterThan(0);

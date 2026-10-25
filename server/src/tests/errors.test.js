@@ -38,7 +38,7 @@ describe("NormativeError", () => {
     expect(() => new NormativeError("UNAUTHORIZED")).toThrow(TypeError);
   });
 
-  test("maps core normative errors to the HTTP response", () => {
+  test("preserves the core normative message in the HTTP response", () => {
     const response = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -61,9 +61,38 @@ describe("NormativeError", () => {
       success: false,
       error: {
         code: "CABLE_NOT_PROTECTED",
-        message: ERROR_CODES.CABLE_NOT_PROTECTED.message,
+        message: "Coordination incorrecte",
         details: { ...details, reference: "CEI 60364-4-43" },
         requestId: "request-core",
+      },
+    });
+  });
+
+  test("maps ground resistance errors from the residential core", () => {
+    const response = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
+    errorHandler(
+      new CoreNormativeError(
+        NORMATIVE_ERROR_CODES.GROUND_RESISTANCE_EXCEEDED,
+        "La résistance de terre mesurée dépasse la limite.",
+        { details: { measuredResistanceOhm: 2000 } },
+      ),
+      { id: "request-ground" },
+      response,
+      jest.fn(),
+    );
+
+    expect(response.status).toHaveBeenCalledWith(422);
+    expect(response.json).toHaveBeenCalledWith({
+      success: false,
+      error: {
+        code: "GROUND_RESISTANCE_EXCEEDED",
+        message: "La résistance de terre mesurée dépasse la limite.",
+        details: { measuredResistanceOhm: 2000 },
+        requestId: "request-ground",
       },
     });
   });

@@ -9,14 +9,14 @@ class AppError extends Error {
    * @param {object} [options.details]   Informations complementaire 
    */
 
-  constructor(message, {statusCode = 500, code = 'INTENAL_ERROR', details} = {}) {
-    super(message)
-    this.name = this.contructor.name;
-    this.statusCode = statusCode
+  constructor(message, { statusCode = 500, code = "INTERNAL_ERROR", details } = {}) {
+    super(message);
+    this.name = this.constructor.name;
+    this.statusCode = statusCode;
     this.code = code;
     this.details = details;
     this.isOperational = true;
-    Error.captureStackTrace(this, this.contructor)
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 

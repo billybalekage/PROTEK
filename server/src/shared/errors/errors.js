@@ -126,7 +126,11 @@ class OperationalError extends AppError {
       throw new TypeError(`Code d’erreur opérationnelle inconnu : ${code}`);
     }
 
-    super(definition.message, definition.statusCode, code, details);
+    super(definition.message, {
+      statusCode: definition.statusCode,
+      code,
+      details,
+    });
     this.name = "OperationalError";
   }
 }
@@ -138,7 +142,11 @@ class NormativeError extends AppError {
       throw new TypeError(`Code d’erreur normative inconnu : ${code}`);
     }
 
-    super(definition.message, definition.statusCode, code, details);
+    super(definition.message, {
+      statusCode: definition.statusCode,
+      code,
+      details,
+    });
     this.name = "NormativeError";
   }
 }

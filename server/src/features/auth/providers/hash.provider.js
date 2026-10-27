@@ -1,6 +1,6 @@
 const crypto = require("crypto")
 const bcrypt = require("bcryptjs")
-const {password: pwdConfig} = require("../../../config/auth");
+const { jwt: jwtConfig, password: pwdConfig, otp: otpConfig } = require("../../../config/auth.config");
 
 const DUMMY_HASH = bcrypt.hashSync('protek-dummy-password', pwdConfig.bcryptRounds);
 const hashPassword = (plain) => bcrypt.hash(plain, pwdConfig.bcryptRounds);
@@ -22,6 +22,20 @@ const generateOtp = (length = 6) => {
     return String(crypto.randomInt(0, max)).padStart(length, '0')
 }
 
+const hmacOtp = ({ userId, purpose, code }) => {
+    if (
+        typeof otpConfig.hmacSecret !== "string" ||
+        otpConfig.hmacSecret.length < 32 ||
+        otpConfig.hmacSecret === jwtConfig.accessSecret
+    ) {
+        throw new Error("OTP_HMAC_SECRET doit contenir au moins 32 caractères et être distinct du secret JWT.");
+    }
+    return crypto
+        .createHmac("sha256", otpConfig.hmacSecret)
+        .update(`${userId}:${purpose}:${code}`)
+        .digest("hex");
+}
+
 // Comparaison des 2 hash
 const safeEqual = (a, b) => {
     const bufA = Buffer.from(a)
@@ -36,5 +50,6 @@ module.exports = {
     sha256, 
     generateOpaqueToken,
     generateOtp,
-    safeEqual
+    safeEqual,
+    hmacOtp,
 }

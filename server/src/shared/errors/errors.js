@@ -54,6 +54,121 @@ const ERROR_CODES = Object.freeze({
     message: "Trop de requêtes, réessayez plus tard.",
     category: "operational",
   }),
+  NOT_FOUND: Object.freeze({
+    statusCode: 404,
+    message: "Ressource introuvable.",
+    category: "operational",
+  }),
+  RATE_LIMITED: Object.freeze({
+    statusCode: 429,
+    message: "Trop de requêtes. Réessayez dans quelques instants.",
+    category: "operational",
+  }),
+  CURRENT_PASSWORD_INVALID: Object.freeze({
+    statusCode: 403,
+    message: "Le mot de passe actuel est incorrect.",
+    category: "operational",
+  }),
+  INVALID_CREDENTIALS: Object.freeze({
+    statusCode: 401,
+    message: "E-mail ou mot de passe incorrect.",
+    category: "operational",
+  }),
+  ACCOUNT_LOCKED: Object.freeze({
+    statusCode: 403,
+    message: "Compte temporairement verrouillé suite à trop de tentatives échouées.",
+    category: "operational",
+  }),
+  CAPTCHA_REQUIRED: Object.freeze({
+    statusCode: 429,
+    message: "Une vérification CAPTCHA est requise pour continuer.",
+    category: "operational",
+  }),
+  EMAIL_NOT_VERIFIED: Object.freeze({
+    statusCode: 403,
+    message: "Veuillez confirmer votre adresse e-mail avant de vous connecter.",
+    category: "operational",
+  }),
+  ACCOUNT_SUSPENDED: Object.freeze({
+    statusCode: 403,
+    message: "Ce compte est suspendu. Contactez le support.",
+    category: "operational",
+  }),
+  TOKEN_INVALID: Object.freeze({
+    statusCode: 401,
+    message: "Jeton invalide ou expiré.",
+    category: "operational",
+  }),
+  TOKEN_REUSE_DETECTED: Object.freeze({
+    statusCode: 401,
+    message: "Réutilisation de jeton détectée. Reconnectez-vous.",
+    category: "operational",
+  }),
+  OTP_INVALID: Object.freeze({
+    statusCode: 400,
+    message: "Code de vérification invalide ou expiré.",
+    category: "operational",
+  }),
+  EMAIL_ALREADY_USED: Object.freeze({
+    statusCode: 409,
+    message: "Cette adresse e-mail est déjà associée à un compte.",
+    category: "operational",
+  }),
+  MFA_REQUIRED: Object.freeze({
+    statusCode: 501,
+    message: "La vérification à deux facteurs n'est pas encore disponible.",
+    category: "operational",
+  }),
+  INVALID_CREDENTIALS: Object.freeze({
+    statusCode: 401,
+    message: "E-mail ou mot de passe incorrect.",
+    category: "operational",
+  }),
+  ACCOUNT_LOCKED: Object.freeze({
+    statusCode: 403,
+    message: "Compte temporairement verrouillé suite à trop de tentatives échouées.",
+    category: "operational",
+  }),
+  CAPTCHA_REQUIRED: Object.freeze({
+    statusCode: 429,
+    message: "Une vérification CAPTCHA est requise pour continuer.",
+    category: "operational",
+  }),
+  EMAIL_NOT_VERIFIED: Object.freeze({
+    statusCode: 403,
+    message: "Veuillez confirmer votre adresse e-mail avant de vous connecter.",
+    category: "operational",
+  }),
+  ACCOUNT_SUSPENDED: Object.freeze({
+    statusCode: 403,
+    message: "Ce compte est suspendu. Contactez le support.",
+    category: "operational",
+  }),
+  TOKEN_INVALID: Object.freeze({
+    statusCode: 401,
+    message: "Jeton invalide ou expiré.",
+    category: "operational",
+  }),
+  TOKEN_REUSE_DETECTED: Object.freeze({
+    statusCode: 401,
+    message: "Réutilisation de jeton détectée. Reconnectez-vous.",
+    category: "operational",
+  }),
+  OTP_INVALID: Object.freeze({
+    statusCode: 400,
+    message: "Code de vérification invalide ou expiré.",
+    category: "operational",
+  }),
+  EMAIL_ALREADY_USED: Object.freeze({
+    statusCode: 409,
+    message: "Cette adresse e-mail est déjà associée à un compte.",
+    category: "operational",
+  }),
+  MFA_REQUIRED: Object.freeze({
+    statusCode: 501,
+    message: "La vérification à deux facteurs n'est pas encore disponible.",
+    category: "operational",
+  }),
   VOLTAGE_DROP_EXCEEDED: Object.freeze({
     statusCode: 422,
     message: "La chute de tension dépasse la limite autorisée.",

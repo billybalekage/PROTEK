@@ -18,7 +18,7 @@ const options = {
     },
     servers: [{ url: env.apiPublicUrl, description: `Serveur ${env.nodeEnv}` }],
     tags: [
-      { name: "Santé", description: "Supervision du service" },
+      { name: "Santé", description: "Supervision du service" }, 
       { name: "Auth", description: "Authentification et sessions" },
       { name: "Projets", description: "Projets et versions d'installation" },
       {

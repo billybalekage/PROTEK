@@ -53,8 +53,19 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
-    exposedHeaders: ["X-Request-Id"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Request-Id",
+      "X-Protek-Client",
+      "X-Organization-Id",
+    ],
+    exposedHeaders: [
+      "X-Request-Id",
+      "Retry-After",
+      "RateLimit",
+      "RateLimit-Policy",
+    ],
     maxAge: 600,
   }),
 );

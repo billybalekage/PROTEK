@@ -1,7 +1,7 @@
-const crypto = require("crypto")
-const jwt = require("jsonwebtoken")
-const { jwt: jwtConfig} = require("../../../config/auth")
-const { TokenInvalidError} = require("../../../shared/errors/auth.error")
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const { jwt: jwtConfig } = require("../../../config/auth.config");
+const { TokenInvalidError } = require("../../../shared/errors/auth.error");
 
 /**
  * @param {object} params
@@ -12,7 +12,7 @@ const { TokenInvalidError} = require("../../../shared/errors/auth.error")
  * @param {{token: string, jti: string, expiresAt: Date}}
  */
 
-const signAccessToken = ({ userId, email, sessionId, orgId}) => {
+const signAccessToken = ({ userId, email, sessionId, orgId }, now = new Date()) => {
     const jti = crypto.randomUUID();
     const token = jwt.sign({email, sid: sessionId, ...(orgId && {orgId})}, jwtConfig.accessSecret, {
         algorithm: 'HS256',
@@ -24,7 +24,7 @@ const signAccessToken = ({ userId, email, sessionId, orgId}) => {
     })
 
     return {
-        token, jti, expiresAt: new Date(Date.now() + jwtConfig.accessTtlSeconds * 1000)
+        token, jti, expiresAt: new Date(now.getTime() + jwtConfig.accessTtlSeconds * 1000)
     }
 }
 
@@ -35,11 +35,20 @@ const signAccessToken = ({ userId, email, sessionId, orgId}) => {
 const verifyAccessToken = (token) => {
     try {
         const payload = jwt.verify(token, jwtConfig.accessSecret, {
-            algorithms: 'HS256', 
+            algorithms: ['HS256'],
             issuer: jwtConfig.issuer,
             audience: jwtConfig.audience
         })
 
+        if (
+            typeof payload.sub !== "string" ||
+            typeof payload.email !== "string" ||
+            typeof payload.sid !== "string" ||
+            typeof payload.jti !== "string" ||
+            typeof payload.exp !== "number"
+        ) {
+            throw new TokenInvalidError();
+        }
         return {
             userId: payload.sub,
             email: payload.email,

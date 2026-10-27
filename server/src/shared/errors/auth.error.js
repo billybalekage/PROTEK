@@ -1,10 +1,11 @@
 const AppError = require("./AppError");
 
-class InvalidCreadentielsError extends AppError {
-  constructor() {
-    super("E-mail ou mot de passe incorrect", {
+class InvalidCredentialsError extends AppError {
+  constructor({ captchaRequired = false } = {}) {
+    super("E-mail ou mot de passe incorrect.", {
       statusCode: 401,
       code: "INVALID_CREDENTIALS",
+      details: captchaRequired ? { captchaRequired: true } : undefined,
     });
   }
 }
@@ -26,7 +27,7 @@ class CaptchaRequiredError extends AppError {
   constructor() {
     super("Une verification CAPTCHA est requise pour continuer.", {
       statusCode: 429,
-      code: "CAPCHA_REQUIRED",
+    code: "CAPTCHA_REQUIRED",
     });
   }
 }
@@ -49,6 +50,15 @@ class AccountSuspendedError extends AppError {
   }
 }
 
+class TwoFactorRequiredError extends AppError {
+  constructor() {
+    super("La vérification à deux facteurs est requise mais pas encore disponible.", {
+      statusCode: 501,
+      code: "MFA_REQUIRED",
+    });
+  }
+}
+
 class TokenInvalidError extends AppError {
   constructor(message = "Jeton invalide ou expiré.") {
     super(message, {
@@ -67,6 +77,15 @@ class TokenReuseDetectedError extends AppError {
         code: "TOKEN_REUSE_DETECTED",
       },
     );
+  }
+}
+
+class WrongCurrentPasswordError extends AppError {
+  constructor() {
+    super("Le mot de passe actuel est incorrect.", {
+      statusCode: 403,
+      code: "CURRENT_PASSWORD_INVALID",
+    });
   }
 }
 
@@ -103,15 +122,17 @@ class ForbiddenError extends AppError {
 }
 
 module.exports = {
-  InvalidCreadentielsError,
+  InvalidCredentialsError,
+  InvalidCreadentielsError: InvalidCredentialsError,
   AccountLockedError,
   CaptchaRequiredError,
   ForbiddenError,
   AccountSuspendedError,
+  TwoFactorRequiredError,
   EmailAlreadyUsedError,
   EmailNotVerifiedError,
   TokenInvalidError,
   TokenReuseDetectedError,
+  WrongCurrentPasswordError,
   OtpInvalidError,
-  ForbiddenError,
 };

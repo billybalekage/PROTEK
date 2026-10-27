@@ -26,7 +26,11 @@ const create = ({ userId, userAgent, ipAddress, approxLocation }, tx) =>
 const findActiveById = (sessionId, tx) =>
   db(tx).session.findFirst({
     where: { id: sessionId, revokedAt: null },
-    select: { id: true, userId: true },
+    select: {
+      id: true,
+      userId: true,
+      user: { select: { status: true } },
+    },
   });
 
 const touch = (sessionId, now, tx) =>
@@ -65,6 +69,17 @@ const revokeAllForUser = async (userId, now, { exceptSessionId } = {}, tx) => {
 const deleteRevokedBefore = (before, tx) =>
   db(tx).session.deleteMany({ where: { revokedAt: { lt: before } } });
 
+const deviceFootprint = async (userId, userAgent, tx) => {
+  const normalizedUserAgent = userAgent ? userAgent.slice(0, 512) : null;
+  const [total, matching] = await Promise.all([
+    db(tx).session.count({ where: { userId } }),
+    db(tx).session.count({
+      where: { userId, userAgent: normalizedUserAgent },
+    }),
+  ]);
+  return { total, matching };
+};
+
 module.exports = {
   create,
   findActiveById,
@@ -73,4 +88,5 @@ module.exports = {
   revokeOne,
   revokeAllForUser,
   deleteRevokedBefore,
+  deviceFootprint,
 };
